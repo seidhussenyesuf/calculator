@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Calculator</title>
+    <!-- Use Inter font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              // Light Mode Colors
+              'light-bg': '#F3F4F6',
+              'light-container': '#FFFFFF',
+              'light-display-bg': '#E5E7EB',
+              'light-text': '#1F2937',
+              'light-btn-num': '#E5E7EB',
+              'light-btn-op': '#F07D0C',
+              'light-btn-sci': '#D1D5DB',
+              
+              // Dark Mode Colors
+              'dark-100': '#1A1C20',
+              'dark-200': '#2E3034',
+              'dark-300': '#424448',
+              'btn-num-dark': '#3E4044',
+              'btn-op-dark': '#F07D0C',
+              'btn-sci-dark': '#374151',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        /* Custom styles for the calculator buttons and overall appearance */
+        
+        /* Smooth transitions for all elements for dark/light mode */
+        body, .bg-white, .bg-gray-100, .bg-gray-200, .bg-gray-800, .bg-gray-900,
+        .text-gray-800, .text-gray-200, .text-gray-400, .text-white,
+        .shadow-md, .shadow-lg, .hover\\:shadow-xl, .transition-all, .dark .text-white, .light .text-light-text {
+            transition-property: background-color, color, box-shadow, transform;
+            transition-duration: 300ms;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .calculator-btn {
+            @apply flex items-center justify-center p-4 text-xl font-semibold rounded-2xl cursor-pointer transition-all duration-150;
+        }
+        
+        .btn-zero {
+            @apply col-span-2;
+        }
+        
+        /* Light mode button styles */
+        .light .btn-num-color {
+            background-color: theme('colors.light-btn-num');
+            color: theme('colors.light-text');
+        }
+        .light .btn-op-color {
+            background-color: theme('colors.light-btn-op');
+            color: theme('colors.light-text'); /* FIXED: Changed to dark text for visibility */
+        }
+        .light .btn-misc-color {
+            background-color: theme('colors.light-btn-sci');
+            color: theme('colors.light-text');
+        }
+        .light .btn-sci-color {
+            background-color: theme('colors.light-btn-sci');
+            color: theme('colors.light-text');
+        }
+        
+        /* Dark mode button styles */
+        .dark .btn-num-color {
+            background-color: theme('colors.btn-num-dark');
+            color: white;
+        }
+        .dark .btn-op-color {
+            background-color: theme('colors.btn-op-dark');
+            color: white;
+        }
+        .dark .btn-misc-color {
+            background-color: theme('colors.dark-300');
+            color: white;
+        }
+        .dark .btn-sci-color {
+            background-color: theme('colors.btn-sci-dark');
+            color: theme('colors.gray.200');
+        }
+
+        /* Responsive grid adjustments */
+        .calculator-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        @media (max-width: 640px) {
+            .calculator-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+            .calculator-btn {
+                font-size: 1.25rem;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-100 font-sans flex items-center justify-center min-h-screen">
+
+    <!-- Calculator Container -->
+    <div class="w-full max-w-lg p-6 bg-light-container dark:bg-dark-200 rounded-3xl shadow-lg mx-auto">
+        
+        <!-- Header with Dark Mode Toggle -->
+        <div class="flex justify-end items-center mb-4">
+            <button id="dark-mode-toggle" class="p-2 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <!-- Moon icon for light mode -->
+                <svg id="moon-icon" class="w-6 h-6 block" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.64 13.07A9.5 9.5 0 1 1 10.92 2.36a1 1 0 0 0 0 1.96 7.5 7.5 0 1 0 9.25 9.25 1 1 0 0 0 1.47-1.47z"/>
+                </svg>
+                <!-- Sun icon for dark mode (initially hidden) -->
+                <svg id="sun-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2A10 10 0 1 0 12 22A10 10 0 1 0 12 2zm0 17a7 7 0 1 1 0-14a7 7 0 1 1 0 14zM12 6a6 6 0 1 1 0 12a6 6 0 1 1 0-12zM12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6zm-6 3a1 1 0 0 1-1 1H3a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1zm12 0a1 1 0 0 1 1-1h2a1 1 0 0 1 0 2h-2a1 1 0 0 1-1-1zM12 5a1 1 0 0 1-1-1V2a1 1 0 0 1 2 0v2a1 1 0 0 1-1 1zm0 14a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1zM4.93 4.93a1 1 0 0 1 0 1.41l-1.42 1.42a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41l1.42-1.42a1 1 0 0 1 1.41 0zm14.14 14.14a1 1 0 0 1 0-1.41l1.42-1.42a1 1 0 0 1 1.41 0a1 1 0 0 1 0 1.41l-1.42 1.42a1 1 0 0 1-1.41 0zM4.93 19.07a1 1 0 0 1 1.41 0l1.42 1.42a1 1 0 0 1 0 1.41a1 1 0 0 1-1.41 0l-1.42-1.42a1 1 0 0 1 0-1.41zm14.14-14.14a1 1 0 0 1 0 1.41l-1.42 1.42a1 1 0 0 1-1.41 0a1 1 0 0 1 0-1.41l1.42-1.42a1 1 0 0 1 1.41 0z"/>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Calculator Display -->
+        <div class="text-right p-4 overflow-hidden bg-light-display-bg dark:bg-dark-300 rounded-xl mb-4">
+            <div id="previous-display" class="text-gray-400 dark:text-gray-400 text-xl h-8 truncate mb-1"></div>
+            <div id="current-display" class="text-light-text dark:text-white text-5xl font-light h-16 truncate">0</div>
+        </div>
+
+        <!-- Calculator Buttons Grid -->
+        <div class="calculator-grid grid grid-cols-5 gap-3">
+            <!-- First row -->
+            <button class="calculator-btn btn-misc-color" data-action="all-clear">AC</button>
+            <button class="calculator-btn btn-misc-color" data-action="negate">+/-</button>
+            <button class="calculator-btn btn-misc-color" data-action="percent">%</button>
+            <button class="calculator-btn btn-sci-color" data-sci="sqrt">&radic;</button>
+            <button class="calculator-btn btn-op-color" data-op="power">^</button>
+            
+            <!-- Second row -->
+            <button class="calculator-btn btn-sci-color" data-sci="sin">sin</button>
+            <button class="calculator-btn btn-sci-color" data-sci="cos">cos</button>
+            <button class="calculator-btn btn-sci-color" data-sci="tan">tan</button>
+            <button class="calculator-btn btn-sci-color" data-sci="log">log</button>
+            <button class="calculator-btn btn-sci-color" data-sci="ln">ln</button>
+
+            <!-- Third row -->
+            <button class="calculator-btn btn-num-color" data-num="7">7</button>
+            <button class="calculator-btn btn-num-color" data-num="8">8</button>
+            <button class="calculator-btn btn-num-color" data-num="9">9</button>
+            <button class="calculator-btn btn-op-color" data-op="divide">&divide;</button>
+            <button class="calculator-btn btn-op-color" data-op="multiply">&times;</button>
+
+            <!-- Fourth row -->
+            <button class="calculator-btn btn-num-color" data-num="4">4</button>
+            <button class="calculator-btn btn-num-color" data-num="5">5</button>
+            <button class="calculator-btn btn-num-color" data-num="6">6</button>
+            <button class="calculator-btn btn-op-color" data-op="subtract">&minus;</button>
+            <button class="calculator-btn btn-op-color" data-op="add">+</button>
+
+            <!-- Fifth row -->
+            <button class="calculator-btn btn-num-color" data-num="1">1</button>
+            <button class="calculator-btn btn-num-color" data-num="2">2</button>
+            <button class="calculator-btn btn-num-color" data-num="3">3</button>
+            <button class="calculator-btn btn-num-color" data-num=".">.</button>
+            <button class="calculator-btn btn-op-color" data-action="calculate">=</button>
+
+            <!-- Sixth row (for number 0 and special key) -->
+            <button class="calculator-btn btn-num-color btn-zero" data-num="0">0</button>
+            
+        </div>
+
+    </div>
+
+    <!-- JavaScript for functionality -->
+    <script>
+        // --- DOM Element Selection ---
+        const previousDisplay = document.getElementById('previous-display');
+        const currentDisplay = document.getElementById('current-display');
+        const buttons = document.querySelectorAll('.calculator-btn');
+
+        // Dark mode elements
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+
+        // --- State Variables ---
+        let currentInput = '0';
+        let previousInput = '';
+        let currentOperation = null;
+        let shouldResetDisplay = false;
+
+        // --- Dark Mode Functionality ---
+        let isDarkMode = localStorage.getItem('isDarkMode') === 'true';
+
+        // Apply initial dark mode setting on page load
+        if (isDarkMode) {
+            document.documentElement.classList.add('dark');
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('isDarkMode', isDarkMode);
+            document.documentElement.classList.toggle('dark');
+            sunIcon.classList.toggle('hidden');
+            moonIcon.classList.toggle('hidden');
+        });
+
+        // --- Helper Functions ---
+
+        /**
+         * Updates the display to show the current input.
+         */
+        function updateDisplay() {
+            // Truncate if the number is too long for the display
+            const maxLen = 10;
+            if (currentInput.length > maxLen) {
+                currentDisplay.textContent = parseFloat(currentInput).toExponential(5);
+            } else {
+                currentDisplay.textContent = currentInput;
+            }
+            previousDisplay.textContent = previousInput;
+        }
+
+        /**
+         * Appends a number to the current input string.
+         * @param {string} number - The number string to append.
+         */
+        function appendNumber(number) {
+            if (shouldResetDisplay) {
+                currentInput = number;
+                shouldResetDisplay = false;
+            } else if (currentInput === '0' && number !== '.') {
+                currentInput = number;
+            } else if (number === '.' && currentInput.includes('.')) {
+                return; // Do nothing if a decimal point already exists
+            } else {
+                currentInput += number;
+            }
+            updateDisplay();
+        }
+
+        /**
+         * Sets the current operation and moves the current input to the previous display.
+         * @param {string} operator - The operation to perform (add, subtract, etc.).
+         */
+        function chooseOperation(operator) {
+            if (currentOperation !== null) {
+                // If there's an ongoing operation, calculate the result first
+                calculate();
+            }
+            currentOperation = operator;
+            previousInput = `${currentInput} ${getSymbol(operator)}`;
+            currentInput = '0'; // Reset current input for the next number
+            updateDisplay();
+        }
+        
+        /**
+         * Returns the corresponding symbol for an operation.
+         * @param {string} operator - The operation name.
+         * @returns {string} The symbol string.
+         */
+        function getSymbol(operator) {
+            switch(operator) {
+                case 'add': return '+';
+                case 'subtract': return '−';
+                case 'multiply': return '×';
+                case 'divide': return '÷';
+                case 'power': return '^';
+                default: return '';
+            }
+        }
+        
+        /**
+         * Performs the calculation based on the current state.
+         */
+        function calculate() {
+            let result;
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+
+            if (isNaN(prev) || isNaN(current) || !currentOperation) {
+                return;
+            }
+
+            switch(currentOperation) {
+                case 'add':
+                    result = prev + current;
+                    break;
+                case 'subtract':
+                    result = prev - current;
+                    break;
+                case 'multiply':
+                    result = prev * current;
+                    break;
+                case 'divide':
+                    if (current === 0) {
+                        currentInput = 'Error';
+                        previousInput = '';
+                        currentOperation = null;
+                        updateDisplay();
+                        return;
+                    }
+                    result = prev / current;
+                    break;
+                case 'power':
+                    result = Math.pow(prev, current);
+                    break;
+                default:
+                    return;
+            }
+
+            currentInput = result.toString();
+            previousInput = '';
+            currentOperation = null;
+            shouldResetDisplay = true; // Prepare to start a new calculation
+            updateDisplay();
+        }
+
+        /**
+         * Clears all inputs and resets the state.
+         */
+        function allClear() {
+            currentInput = '0';
+            previousInput = '';
+            currentOperation = null;
+            updateDisplay();
+        }
+
+        /**
+         * Toggles the sign of the current input.
+         */
+        function negate() {
+            currentInput = (parseFloat(currentInput) * -1).toString();
+            updateDisplay();
+        }
+
+        /**
+         * Calculates the percentage of the current input.
+         */
+        function percent() {
+            currentInput = (parseFloat(currentInput) / 100).toString();
+            updateDisplay();
+        }
+
+        /**
+         * Performs a scientific function on the current input.
+         * @param {string} func - The scientific function name.
+         */
+        function performScientificFunc(func) {
+            let value = parseFloat(currentInput);
+            if (isNaN(value)) {
+                currentInput = 'Error';
+                updateDisplay();
+                return;
+            }
+
+            let result;
+            switch (func) {
+                case 'sin':
+                    // Convert degrees to radians for JS Math functions
+                    result = Math.sin(value * Math.PI / 180);
+                    break;
+                case 'cos':
+                    result = Math.cos(value * Math.PI / 180);
+                    break;
+                case 'tan':
+                    // Check for multiples of 90 degrees where tan is undefined
+                    if (Math.abs(value % 180 - 90) < 0.0001) {
+                        currentInput = 'Error';
+                        updateDisplay();
+                        return;
+                    }
+                    result = Math.tan(value * Math.PI / 180);
+                    break;
+                case 'ln':
+                    if (value <= 0) {
+                        currentInput = 'Error';
+                        updateDisplay();
+                        return;
+                    }
+                    result = Math.log(value);
+                    break;
+                case 'log':
+                    if (value <= 0) {
+                        currentInput = 'Error';
+                        updateDisplay();
+                        return;
+                    }
+                    result = Math.log10(value);
+                    break;
+                case 'sqrt':
+                    if (value < 0) {
+                        currentInput = 'Error';
+                        updateDisplay();
+                        return;
+                    }
+                    result = Math.sqrt(value);
+                    break;
+            }
+
+            // Fix for floating point precision issues and display.
+            currentInput = (Math.round(result * 100000000) / 100000000).toString();
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        // --- Event Listener Loop ---
+        buttons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const buttonType = e.target.dataset;
+
+                // Handle number and decimal point input
+                if (buttonType.num) {
+                    appendNumber(buttonType.num);
+                } 
+                // Handle operator input
+                else if (buttonType.op) {
+                    chooseOperation(buttonType.op);
+                } 
+                // Handle scientific functions
+                else if (buttonType.sci) {
+                    performScientificFunc(buttonType.sci);
+                }
+                // Handle special actions
+                else if (buttonType.action) {
+                    switch(buttonType.action) {
+                        case 'all-clear':
+                            allClear();
+                            break;
+                        case 'calculate':
+                            calculate();
+                            break;
+                        case 'negate':
+                            negate();
+                            break;
+                        case 'percent':
+                            percent();
+                            break;
+                    }
+                }
+            });
+        });
+
+        // --- Initial Display Update ---
+        updateDisplay();
+    </script>
+</body>
+</html>
